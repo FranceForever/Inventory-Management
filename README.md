@@ -20,10 +20,6 @@ PantryChef is a smart pantry management system designed to streamline your pantr
 - **Material UI**: For consistent and robust UI components.
 - **Firebase**: For backend services including Firestore and Storage.
 
-## Setup Instructions
-
-Follow these steps to set up the PantryChef app after downloading it from GitHub.
-
 ### Prerequisites
 
 Ensure you have the following installed on your machine:
