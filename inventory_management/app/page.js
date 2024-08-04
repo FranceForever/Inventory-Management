@@ -15,6 +15,7 @@ export default function Home() {
   const [captureImage, setCaptureImage] = useState(false);
   const [image, setImage] = useState(null);
   const [viewImageUrl, setViewImageUrl] = useState('');
+  const [recipe, setRecipe] = useState('');
 
   const updateInventory = async () => {
     const inventoryCollection = collection(firestore, "inventory");
@@ -86,7 +87,7 @@ export default function Home() {
       setItemName(''); // Clear item name field
       setItemCount(0); // Clear item count field
       setImage(null); // Clear image field
-      setOpen(false); // Close the dialog
+      setOpen(false); // Close the dialog box
     }
   };
 
@@ -133,6 +134,38 @@ export default function Home() {
     handleSaveImage(imageSrc);
   }, [webcamRef]);
 
+  const fetchRecipeSuggestion = async () => {
+    try {
+      const pantryItems = inventory.map(item => item.name);
+  
+      const response = await fetch('/api/suggest-recipes', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ pantryItems }),
+      });
+  
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to fetch recipe suggestion');
+      }
+  
+      const data = await response.json();
+      setRecipe(data.recipe);
+    } catch (error) {
+      console.error('Error fetching recipe suggestion:', error);
+      alert(`Error fetching recipe suggestion: ${error.message}`);
+    }
+  };
+
+  const formatRecipe = (recipe) => {
+    return recipe
+      .split('\n')
+      .filter(line => line.trim() !== '') // Filter out empty lines
+      .map((line, index) => <Typography key={index} component="li">{line.replace(/[*#]/g, '')}</Typography>);
+  };
+
   const filteredInventory = inventory.filter((item) =>
     item.name && item.name.toLowerCase().includes(searchQuery.toLowerCase())
   );
@@ -140,7 +173,7 @@ export default function Home() {
   return (
     <Box sx={{ p: 4, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
       <Typography variant="h2" color="#333" align="center" gutterBottom sx={{ width: '100%', bgcolor: '#ADD8E6', py: 2 }}>
-        Inventory Items
+        PantryChef
       </Typography>
       <Button variant="contained" onClick={handleClickOpen} sx={{ mb: 4 }}>
         Add New Item
@@ -152,6 +185,15 @@ export default function Home() {
         fullWidth
         sx={{ mb: 4 }}
       />
+      <Button variant="contained" onClick={fetchRecipeSuggestion} sx={{ mb: 4 }}>
+        Suggest Recipe
+      </Button>
+      {recipe && (
+        <Box sx={{ mt: 4 }}>
+          <Typography variant="h5">Suggested Recipe:</Typography>
+          <ul style={{ listStyleType: 'none', paddingLeft: 0 }}>{formatRecipe(recipe)}</ul>
+        </Box>
+      )}
       <Dialog open={open} onClose={handleClose}>
         <DialogTitle>Add Item</DialogTitle>
         <DialogContent>

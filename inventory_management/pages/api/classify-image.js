@@ -1,24 +1,20 @@
-// pages/api/classify-image.js
-
 import { ImageAnnotatorClient } from '@google-cloud/vision';
 
-const client = new ImageAnnotatorClient();
+const client = new ImageAnnotatorClient({
+  keyFilename: process.env.GOOGLE_APPLICATION_CREDENTIALS,
+});
 
 export default async function handler(req, res) {
   if (req.method === 'POST') {
     const { imageUrl } = req.body;
 
     try {
-      if (!imageUrl) {
-        throw new Error('Image URL is missing');
-      }
-      console.log('Classifying image:', imageUrl); // Log the image URL
       const [result] = await client.labelDetection(imageUrl);
-      console.log('Vision API result:', result); // Log the Vision API result
-      const labels = result.labelAnnotations ? result.labelAnnotations.map(label => label.description) : [];
+      const labels = result.labelAnnotations.map(label => label.description);
+
       res.status(200).json({ labels });
     } catch (error) {
-      console.error('Error classifying image:', error); // Log the full error
+      console.error('Error classifying image:', error);
       res.status(500).json({ error: error.message });
     }
   } else {
